@@ -1,7 +1,7 @@
 # Title: Brownian Motion
 
-**Author:** Natan Boyd
-**Degree:** BSc Mathematics, University of Warwick
+**Author:** Natan Boyd <br>
+**Degree:** BSc Mathematics, University of Warwick <br>
 **Date:** April 18, 2025
 
 ## View Full Document
