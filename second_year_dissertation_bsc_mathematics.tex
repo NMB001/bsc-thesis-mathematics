@@ -1,0 +1,981 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage[numbers]{natbib}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{mathrsfs}
+\usepackage[nottoc]{tocbibind}
+\bibliographystyle{plainnat}
+\usepackage{cite}
+\DeclareMathOperator{\dee}{d}
+%\setlength{\parindent}{0pt}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+
+\pagestyle{fancy}
+\lhead{\textbf{BROWNIAN MOTION}}
+\rhead{\textbf{\rightmark}}
+
+\title{\textbf{Brownian Motion}}
+\author{Natan Boyd}
+\date{April 18, 2025}
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction and Motivation}
+
+%In 1827, while observing pollen particles immersed in water, a botanist by the name of Robert Brown noticed that each particle seemed to exhibit constant random motion, such as in figure~\ref{BM_sim_2d}. After repeated experimenting, he concluded that these motions arose neither from currents in the fluid, nor from gradual evaporation, but in fact belonged to the particle itself \citep[p.~2]{RMM}. This motion was later named Brownian motion, after Robert Brown. It was not until much later however, that any progress on the topic was made. In 1905, Einstein published four revolutionary papers, one on the photoelectric effect, another two on special relativity and mass-energy equivalence, and perhaps the least known of the four, one on Brownian motion \citep[p.~5]{RMM}. It is in this paper that he realises that Brownian motion is a problem of probability theory and the aim of this essay is to develop the necessary mathematics to describe this phenomenon, and to then prove some of its properties.
+
+In 1827, while observing pollen particles suspended in water, botanist Robert Brown noticed that each particle exhibited a continuous, random motion, as illustrated in Figure~\ref{BM_sim_2d}. After repeated experimentation, he determined that these motions arose neither from currents in the fluid, nor from gradual evaporation, but instead belonged to the particles themselves \citep[p.~2]{RMM}. This phenomenon was later named Brownian motion and not much progress was made on the topic until much later. In 1905, Einstein published four revolutionary papers -- one on the photoelectric effect, two on special relativity and mass-energy equivalence and, perhaps the least well-known of the four, one on Brownian motion. In this paper he realises that Brownian motion is fundamentally a problem of probability theory \citep[p.~5]{RMM} and the aim of this essay is to develop the necessary mathematical framework to describe it, and to then prove some of its key properties.
+
+\begin{figure}[hbtp]
+\caption{A simulation of the path of a pollen particle \ref{app:code}}
+\centering
+\includegraphics[width = 3.5in]{Latex/BM_sim_2d_2}
+\label{BM_sim_2d}
+\end{figure}
+
+In this essay, we will focus on Brownian motion in one dimension, that is the motion of a particle along one co-ordinate axis, although generalising to higher dimensions is relatively natural and straightforward and such a treatment can be found in Resnick \citep[\S~6]{SIR}. To fully understand the mathematics of Brownian motion, it is necessary that we begin by developing some preliminary measure theory.
+
+%Given that Brownian motion is an example of a continuous-time stochastic process, that is a process in which the index variable takes a continuous set of values, it is necessary that we begin this essay with developing some preliminary measure theory.
+
+\section{Measure Theory}
+
+This first chapter is primarily concerned with measuring the `length' (or measure) of subsets of the real numbers. For some subsets, such as intervals or singleton sets, this is fairly intuitive, but our aim is to generalise this to (almost) every subset of $\mathbb{R}$. Developing this idea will later prove to be remarkably useful when developing a rigorous theory of probability over uncountable sets.
+%Which in turn enables us to mathematically explain the phenomenon of Brownian motion.
+%We should also remark at this stage that the aim of this essay is to provide the reader a complete understanding of the properties of Brownian motion, so most proofs in this section are indeed included. That being said, a couple proofs in this section are rather convoluted and the results are simply quoted but all such results can be found alongside their proofs in Capi{\'n}ski and Kopp's \textit{Measure, Integral and Probability}.
+
+\subsection{The Borel Sets}
+
+We begin by aiming to describe the subsets for which we can assign a length. We will see later that allowing arbitrary subsets of $\mathbb{R}$ is problematic since it is not possible to extend a reasonable notion of measure to every such subset. Hence, it is necessary to characterise a general group of sets for which we can do so, before then defining a general function that assigns a measure to these sets.
+
+%We first recall the definition of a $\sigma$-algebra as it will be crucial to the development of this theory.
+
+\begin{definition} \citep[p.~57]{GBF}
+A \textit{$\sigma$-algebra} $\mathcal{F}$ on some set $\Omega$ is a collection of subsets of $\Omega$ such that $\Omega \in \mathcal{F}$ and $\mathcal{F}$ is closed under complements and countable unions.
+\end{definition}
+
+%\begin{definition}
+%A \textit{$\sigma$-algebra} is a collection $\mathcal{F}$ of subsets of a set $\Omega$ such that 
+%\begin{enumerate}
+%\item $\Omega \in \mathcal{F}$,
+%\item If $A \in \mathcal{F}$, then $A^c$ $\in \mathcal{F}$,
+%\item If $A_1,A_2,... \in \mathcal{F}$, then $\bigcup_{i=1}^{\infty} A_i \in \mathcal{F}$.
+%\end{enumerate}
+%\end{definition}
+
+By De Morgan's laws, it is easy to show that a $\sigma$-algebra is closed under countable intersections as well, and proof of this fact is given in ST120.
+%We now define a general function that gives some notion of length to each subset of a $\sigma$-algebra.
+
+\begin{definition}\citep[p.~63]{GBF}
+Let $\Omega$ be a set and let $\mathcal{F}$ be a $\sigma$-algebra on $\Omega$. A \textit{measure} on $\Omega$ is a function $\mu : \mathcal{F} \rightarrow [0,\infty]$ such that
+\begin{enumerate}
+\item $\mu(\varnothing) = 0$
+\item $\mu(\bigcup_{n=1}^{\infty} A_n) = \sum_{n=1}^{\infty} \mu(A_n)$ for any disjoint subsets $A_i \in \mathcal{F}$.
+\end{enumerate}
+\end{definition}
+
+We say that a measure $\mu$ is \textit{finite} if $\mu(\Omega) < \infty$ and that $\mu$ is a \textit{probability measure} if $\mu(\Omega) = 1$. We call the ordered triple $(\Omega,\mathcal{F},\mu)$ a \textit{measure space} and the ordered triple $(\Omega, \mathcal{F}, \mathbb{P})$ a \textit{probability space} in the case that $\mathbb{P}$ is a probability measure.
+
+\begin{lemma}
+For any collection $\mathcal{G}$ of subsets of some set $\Omega$, there exists a smallest $\sigma$-algebra on $\Omega$ that contains $\mathcal{G}$. We denote this $sigma$-algebra $\sigma(\mathcal{G})$ and call it the $\sigma$-algebra generated by $\mathcal{G}$.
+\end{lemma}
+
+\begin{comment}
+\begin{proof}
+Let $\mathcal{A}$ be some index set and $S = \{\mathcal{F}_\alpha\}_{\alpha \in \mathcal{A}}$ be the collection of $\sigma$-algebras on $\Omega$ such that $\mathcal{G}\subseteq\mathcal{F}_{\alpha}$ for every $\alpha \in \mathcal{A}$. Clearly, $S$ is non-empty since $\mathcal{P}(\Omega) \in S$. We now show that the intersection of arbitrary $\sigma$-algebras $\Sigma_\alpha$ on $\Omega$ is also a $\sigma$-algebra $\Sigma$ on $\Omega$. To do this, we first note that each $\Sigma_\alpha$ is a $\sigma$-algebra so $\Omega \in \Sigma_\alpha$ for all $\alpha \in \mathcal{A}$ and hence $\Omega \in \Sigma$. Then, if $X \in \Sigma$, then $X \in \Sigma_\alpha$ for every $\alpha \in \mathcal{A}$ so, by closure under complements, $X^c \in \Sigma_\alpha$ for every $\alpha \in \mathcal{A}$ so $X^c \in \Sigma$. Finally, if $\{X_n\}_{n \in \mathbb{N}}$ is a sequence of sets in $\Sigma$, then each $X_n$ is in every $\Sigma_\alpha$, so $\bigcup_{n \in \mathbb{N}} X_n \in \Sigma_\alpha$ for every $\alpha \in \mathcal{A}$ so $\bigcup_{n \in \mathbb{N}} X_n \in \Sigma$. So, $\Sigma$ contains $\Omega$ and is closed under complements and countable unions, so is a $\sigma$-algebra. Hence, setting $\mathcal{F} = \bigcap_{\alpha\in\mathcal{A}} \mathcal{F}_{\alpha}$, we have that $\mathcal{F}$ is a $\sigma$-algebra and then noting that any $\sigma$-algebra containing $\mathcal{G}$ also contains $\mathcal{F}$ completes the proof.
+%%%%%%%%%%on $\Omega$ containing $\mathcal{G}$. That is $S = such that $\mathcal{G} \in \mathcal{F}_{\alpha}$ for every $\alpha \in \mathcal{A}$.
+\end{proof}
+\end{comment}
+
+\begin{proof}\citep[p.~4]{SC}
+The first step of this proof is to show that, in general, the intersection of arbitrary $\sigma$-algebras $\{\Sigma_\alpha\}_{\alpha \in \mathcal{A}}$ on a set $S$ is also a $\sigma$-algebra $\Sigma$ on $S$. To do this, we first note that each $\Sigma_\alpha$ is a $\sigma$-algebra so $S \in \Sigma_\alpha$ for all $\alpha \in \mathcal{A}$ and hence $S \in \Sigma$. Then, if $X \in \Sigma$, then $X \in \Sigma_\alpha$ for every $\alpha \in \mathcal{A}$ so, by closure under complements, $X^c \in \Sigma_\alpha$, for every $\alpha \in \mathcal{A}$, so $X^c \in \Sigma$. Finally, if $\{X_n\}_{n \in \mathbb{N}}$ is a sequence of sets in $\Sigma$, then each $X_n$ is in every $\Sigma_\alpha$, so $\bigcup_{n \in \mathbb{N}} X_n \in \Sigma_\alpha$ for every $\alpha \in \mathcal{A}$ so $\bigcup_{n \in \mathbb{N}} X_n \in \Sigma$. So, $\Sigma$ contains $S$ and is closed under complements and countable unions, so is a $\sigma$-algebra.
+
+We are now able to prove the existence of smallest $\sigma$-algebra containing $\mathcal{G}$. Let $\mathcal{A}$ be some index set and $\mathbb{F} = \{\mathcal{F}_\alpha\}_{\alpha \in \mathcal{A}}$ be the complete collection of $\sigma$-algebras on $\Omega$ such that $\mathcal{G}\subseteq\mathcal{F}_{\alpha}$ for every $\alpha \in \mathcal{A}$. Note that $\mathbb{F}$ is non-empty since $\mathcal{P}(\Omega) \in \mathbb{F}$. Hence, setting $\mathcal{F} = \bigcap_{\alpha\in\mathcal{A}} \mathcal{F}_{\alpha}$, we have that $\mathcal{F}$ is a $\sigma$-algebra and then noting that any $\sigma$-algebra containing $\mathcal{G}$ also contains $\mathcal{F}$ completes the proof.
+\end{proof}
+
+\begin{comment}
+
+\begin{proof}\citep[p.~4]{SC}
+Let $\mathcal{A}$ be some index set and $\{\mathcal{F}_\alpha\}_{\alpha \in \mathcal{A}}$ be the collection of $\sigma$-algebras such that $\mathcal{G}\subseteq\mathcal{F}_{\alpha}$ for every $\alpha \in \mathcal{A}$. We have that $\{\mathcal{F}_\alpha\}_{\alpha \in \mathcal{A}}$ is non-empty since $\mathcal{P}(\Omega) \in \{\mathcal{F}_\alpha\}_{\alpha \in \mathcal{A}}$ and setting $\mathcal{F} = \bigcap_{\alpha\in\mathcal{A}} \mathcal{F}_{\alpha}$, we have that $\mathcal{F}$ is a $\sigma$-algebra by countable intersections. Noting that any $\sigma$-algebra containing $\mathcal{G}$ also contains $\mathcal{F}$ completes the proof. We will denote this $\sigma$-algebra $\sigma(\mathcal{G})$ and call it \textit{the $\sigma$-algebra generated by $\mathcal{G}$}.
+\end{proof}
+
+\end{comment}
+
+%We now turn our attention to the construction of the most important $\sigma$-algebra in probability theory, namely the Borel $\sigma$-algebra, first proving the following key result.
+
+%\begin{lemma}
+%Let each $\mathcal{F}_\alpha$ be a $\sigma$-algebra on $\mathbb{R}$, where $\alpha$ is in some index set $X$. Then
+%\begin{equation}
+%\mathcal{F} = \bigcap_{\alpha \in X} \mathcal{F}_\alpha
+%\end{equation}
+%is a $\sigma$-algebra.
+%\end{lemma}
+
+%\begin{proof}
+%\begin{enumerate}
+%\item We know that $\mathbb{R} \in \mathcal{F}_\alpha$ for every $\alpha$, so $\mathbb{R} \in \mathcal{F}$. 
+%\item If $A \in \mathcal{F}$, we have that $A \in \mathcal{F}_\alpha$ for every $\alpha \in X$ so, by closure under complements, $A^c \in \mathcal{F}_\alpha$ for every $\alpha \in X$, so $A^c \in \mathcal{F}$. 
+%\item Now suppose that we have a countable collection of subsets $A_1,A_2,... \in \mathcal{F}$. Then $A_i \in \mathcal{F}_\alpha$ for every integer $i \geq 1$ and $\alpha \in X$. By closure under countable unions, $\bigcup_{i=1}^{\infty} A_i \in \mathcal{F}_\alpha$ for every $\alpha \in X$, so $\bigcup_{i=1}^{\infty} A_i \in \mathcal{F}$.
+%\end{enumerate} 
+%\end{proof}
+
+%\begin{definition}\citep[p.~40]{MC}
+%Let
+%\begin{equation}
+%\mathcal{B} = \bigcap \{\mathcal{F}:\mathcal{F} \text{ is a } \sigma\text{-algebra containing all intervals}\}.
+%\end{equation}
+%Then we call $\mathcal{B}$ the Borel $\sigma$-algebra generated by all intervals and each element of $\mathcal{B}$ a Borel set.
+%\end{definition}
+
+\begin{definition}\citep[p.~5]{SC}
+Let $(X,\mathcal{T})$ be a topological space. The \textit{Borel $\sigma$-algebra}, denoted $\mathcal{B}(X)$, is the $\sigma$-algebra generated by the open sets in $\mathcal{T}$. That is, $\mathcal{B}(X)$ is the smallest $\sigma$-algebra containing $\mathcal{T}$.
+\end{definition}
+
+%\begin{remark}
+For the purposes of this essay we will, unless otherwise specified, restrict ourselves to the set of real numbers equipped with the usual topology, with $\mathcal{B}(\mathbb{R})$ being the smallest $\sigma$-algebra containing all open subsets of $\mathbb{R}$. When we say `the Borel $\sigma$-algebra' we will be referring to $\mathcal{B}(\mathbb{R})$ and `the Borel sets' will refer to the elements of $\mathcal{B}(\mathbb{R})$.
+%\end{remark}
+
+%\begin{definition}
+%The smallest $\sigma$-algebra on $\mathbb{R}$ containing all open subsets of $\mathbb{R}$ is called the \textit{Borel $\sigma$-algebra} and is denoted $\mathcal{B}(\mathbb{R})$. An element of this $\sigma$-algebra is called a \textit{Borel set}.
+%\end{definition}
+
+Let us briefly check whether some familiar sets are Borel sets \citep[pp.~40--42]{MC}. Since every open subset of $\mathbb{R}$ is in $\mathcal{B}(\mathbb{R})$ and every closed subset of $\mathbb{R}$ has an open complement, we have, by closure under complements, that every closed subset of $\mathbb{R}$ is a Borel set. Then, every singleton set $\{x\}$ is in $\mathcal{B}(\mathbb{R})$ since $\{x\} = [x,x]$ which is closed. It then follows that every finite set is a Borel set, since it can be written as a finite union of singletons and, by closure under countable unions, we also have that every countable set is a Borel set. For half-open intervals, since we can write $[a,b) = \bigcap_{n=1}^{\infty} (a - \frac{1}{n}, b)$ and $(a,b] = \bigcap_{n=1}^{\infty} (a, b + \frac{1}{n})$, it follows by closure under countable intersections that half-open intervals are Borel sets.
+
+\subsection{The Outer Measure}
+We now aim to develop a notion of measure for every Borel set beginning with intervals on $\mathbb{R}$. Consider the extended real line that includes a point at infinity and a point at negative infinity denoted $\overline{\mathbb{R}} := \mathbb{R} \cup \{-\infty,\infty\}$. Let $S$ denote the set of all intervals on $\mathbb{R}$ and define a function $\ell : S \rightarrow \overline{\mathbb{R}}$ that defines the length of an interval in the intuitive way. That is, for any bounded interval $I \in S$ with endpoints $a,b$ and $a \leq b$, we define $\ell(I) = b - a$ and for any half-bounded or unbounded interval, $I = (-\infty,b)$, $(-\infty,b]$, $(a,\infty)$, $[a,\infty)$ or $(-\infty,\infty)$, we say that $\ell(I) = \infty$. We remark that for a singleton set $\{a\}$, the length is given by $\ell(\{a\}) = \ell([a,a]) = 0$ and, since the empty set $\varnothing = (0,0)$, it follows that $\ell(\varnothing) = 0$. We can now generalise to every subset of $\mathbb{R}$.
+
+%\begin{definition}
+%For any bounded interval $I = [a,b]$, $I = [a,b)$, $I = (a,b]$ or $I = (a,b)$, we define $l(I) = b - a$. For $I = (-\infty,b)$, $I = (a,\infty)$ or $I = (-\infty,\infty)$, we say that $l(I) = \infty$.
+%\end{definition}
+
+%Note that for a singleton set $\{a\}$, the length is given by $l(\{a\}) = l([a,a]) = 0$ and since the empty set $\varnothing = (0,0)$ it follows that $l(\varnothing) = 0$ as well.\\\\
+%Our aim in this section is to generalise this notion of length to any subset of $\mathbb{R}$. To do this we first define the \textit{outer measure}. We should then check that this definition satisfies some properties that we would expect of a length defining function.
+
+\begin{definition}\citep[p.~14]{SA}
+The \textit{(Lebesgue) outer measure} of a set $A \subseteq \mathbb{R}$ is given by
+\[
+m^*(A) = \inf\left\{\sum_{n=1}^{\infty}\ell(I_n): A \subseteq \bigcup_{n=1}^{\infty}I_n \text{, each $I_n$ an open interval}\right\}.
+\]
+\end{definition}
+
+That is, if $X$ is the collection of every set of open intervals $I_n \subseteq \mathbb{R}$ such that $A$ is contained within the union of these intervals, and we sum the lengths of each interval for every element of $X$, then the smallest such sum is the outer measure of $A$. It is reasonable at this point to check that this definition satisfies the properties we would expect from a length-defining function. Certainly, we would hope that $m^*(I) = \ell(I)$ for any interval $I \in S$. Also if $A \subseteq B \subseteq \mathbb{R}$ then we would like to have that $m^*(A) \leq m^*(B)$ and if $(A_i)_{i \geq 1}$ is a sequence of subsets of $\mathbb{R}$, then
+\[
+m^*\left(\bigcup_{i=1}^{\infty} A_i\right) \leq \sum_{i=1}^{\infty} m^*(A_i).
+\]
+Luckily, it turns out that each of these properties is in fact true \citep[pp.~22-25]{MC} and the outer measure is a measure, but their proofs are not strictly relevant for the purposes of this essay and have thus been omitted. We will however give an elegant proof of another (at first glance, perhaps slightly more surprising) property in order to motivative our studies of probability theory over uncountable sets.
+\begin{lemma}
+Every countable subset of $\mathbb{R}$ has outer measure 0.
+\end{lemma}
+
+\begin{proof} \citep[pp.~15-16]{SA}
+Let $A = \{x_1,x_2,...\}$ be a countable subset of $\mathbb{R}$ and set $\varepsilon > 0$. For $n \in \mathbb{N}$, let
+\[
+I_n = \left(x_n - \frac{\varepsilon}{2^n}, x_n + \frac{\varepsilon}{2^n}\right).
+\]
+Then $l(I_n) = \frac{\varepsilon}{2^{n-1}}$. As $\sum_{n=1}^{\infty} \frac{1}{2^{n-1}} = 2$, it follows that $\sum_{i=1}^{\infty} l(I_n) = 2\varepsilon$ so $m^*(A) = 0$.%We pause briefly to remark that this implies that every finite subset of $\mathbb{R}$ has outer measure $0$ since for a subset of cardinality $n$ we can set 
+\end{proof}
+
+\begin{comment}
+
+\begin{lemma}
+The outer measure satisfies the following properties:
+\begin{enumerate}
+\item \label{1} Every countable subset of $\mathbb{R}$ has outer measure 0,
+\item \label{2} If $A \subseteq B \subseteq \mathbb{R}$, then $m^*(A) \leq m^*(B)$,
+\item \label{3} If $(A_i)_{i \geq 1}$ is a sequence of subsets of $\mathbb{R}$, then
+\[
+m^*\left(\bigcup_{i=1}^{\infty} A_i\right) \leq \sum_{i=1}^{\infty} m^*(A_i),
+\]
+\item \label{4} The outer measure of an interval is equal to its length.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+The proofs for \textit{2},\textit{3} and \textit{4} will not be given in this essay but can be found in \citep[pp.~22-25]{MC}. We do however give a nice proof of \textit{1}, closely following the proof from \citep[pp.~15-16]{SA}. Let $A = \{x_1,x_2,...\}$ be a countable subset of $\mathbb{R}$ and set $\varepsilon > 0$. For $n \in \mathbb{N}$, let
+\begin{equation}
+I_n = (x_n - \frac{\varepsilon}{2^n}, x_n + \frac{\varepsilon}{2^n}).
+\end{equation}
+Then $l(I_n) = \frac{\varepsilon}{2^{n-1}}$. Since $\sum_{n=1}^{\infty} \frac{1}{2^{n-1}} = 2$, it follows that
+\begin{equation}
+\sum_{i=1}^{\infty} l(I_n) = 2\varepsilon
+\end{equation}
+so $m^*(A) = 0$.%We pause briefly to remark that this implies that every finite subset of $\mathbb{R}$ has outer measure $0$ since for a subset of cardinality $n$ we can set 
+\end{proof}
+
+\end{comment}
+
+In addition to the above properties, there is one further property that we would like to have, namely countable additivity. That is, for disjoint subsets $A$ and $B$, $m^*(A \cup B) = m^*(A) + m^*(B)$. However, in general, this does not hold and it is in fact possible to construct a subset of $\mathbb{R}$ that is not measurable, Vitali's non-measurable set \citep[\S~1]{AK} being a nice example. This motivates the following definition.
+
+%e now consider the question of whether $m^*$ is countably additive. That is, for disjoint subsets $A$ and $B$, does $m^*(A \cup B) = m^*(A) + m^*(B)$?\\
+
+%The outer measure does indeed satisfy the above properties, however to be a measure, we would also like that our notion of measure satisfies the property that for disjoint subsets $A$ and $B$, $m^*(A \cup B) = m^*(A) + m^*(B)$. It turns out that, in general, this is not true. 
+
+\begin{definition} \citep[p.~27]{MC}\label{Lebmeas}
+A subset $E \subseteq \mathbb{R}$ is \textit{(Lebesgue) measurable} if
+\[
+m^*(A) = m^*(A \cap E) + m^*(A \cap E^c)
+\]
+for every $A \subseteq \mathbb{R}$.
+\end{definition}
+
+It turns out that selecting precisely the subsets $E \subseteq \mathbb{R}$ that satisfy the equation in definition~\ref{Lebmeas} will guarantee that each property we expect of a measure is satisfied. Note that, in the above definition, we say that $a + \infty = \infty + a = \infty + \infty = \infty$. Unless otherwise specified, we will denote the collection of Lebesgue measurable subsets of $\mathbb{R}$ by $\mathcal{M}$ and, for each $A \in \mathcal{M}$, we will denote the measure of $A$ by $m(A)$.
+
+It also turns out that the collection $\mathcal{M}$ of Lebesgue measurable subsets of $\mathbb{R}$ forms a $\sigma$-algebra \citep[p.~29-34]{MC} however proof of this property  is rather long and not strictly relevant since we are more interested in the collection of Borel sets. This leads us on to the following proposition.
+
+\begin{comment}
+\begin{theorem}
+The collection $\mathcal{M}$ of Lebesgue measurable subsets of $\mathbb{R}$ is a $\sigma$-algebra.
+\end{theorem}
+
+\begin{proof}
+Recalling the properties required to be a $\sigma$-algebra, we first need to prove that $\mathbb{R} \in \mathcal{M}$. Let $A \subseteq \mathbb{R}$. Then $A \cap \mathbb{R} = A$ and $A \cap \mathbb{R}^c = A \cap \varnothing = \varnothing$. So, $m(A \cap \mathbb{R}) + m(A \cap \varnothing) = m(A) + m(\varnothing) = m(A)$, since $m(\varnothing) = 0$. Hence, $\mathbb{R}$ is measurable.\\
+
+The next condition is that if $E \in \mathcal{M}$, then $E^c \in \mathcal{M}$. This is immediate since the condition such that $E^c \in \mathcal{M}$, namely $m(A) = m(A \cap (E^c)^c) + m(A \cap E^c)$, is equivalent to the equation in definition~\ref{Lebmeas}.\\
+
+The final condition for $\mathcal{M}$ to be a $\sigma$-algebra is that if $E_1,E_2,\ldots \in \mathcal{M}$, then $\bigcup_{i=1}^{\infty} E_i \in \mathcal{M}$. Proof of this property \citep[pp.~31-34]{MC} is rather long and involved so is beyond the scope of this essay.
+\end{proof}
+\end{comment}
+
+\begin{proposition}
+Every Borel set is Lebesgue measurable.
+\end{proposition}
+
+\begin{proof} \citep[p.~42]{MC}
+We know that $\mathcal{M}$ is a $\sigma$-algebra and every open interval $(a,b) \in \mathcal{M}$. Also, $\mathcal{B}(\mathbb{R})$ is the smallest $\sigma$-algebra containing all open intervals, so it follows that $\mathcal{B}(\mathbb{R}) \subseteq \mathcal{M}$ and hence every Borel set is Lebesgue measurable.
+\end{proof}
+
+\begin{example}\label{example:rationals}
+Consider the following question from \citep[p.~12]{MC}. If a number is chosen uniformly at random from the interval $[0,1]$, what is the probability that this number is rational?
+
+%We should first be clear about exactly what we mean by "at random". We will say that a number chosen uniformly at random will be the result of
+
+We have now built up enough theory to give a reasonable answer to this question. Consider the measure space $([0,1], \mathcal{B}([0,1]), m)$, where $m$ is the Lebesgue measure restricted to $[0,1]$. Then, since $[0,1] \cap \mathbb{Q}$ is countable, it follows that $m([0,1] \cap \mathbb{Q}) = 0$, and since $[0,1] \cap \mathbb{R} \setminus \mathbb{Q}$ and $[0,1] \cap \mathbb{Q}$ are disjoint, we have that $m([0,1] \cap \mathbb{R} \setminus \mathbb{Q}) = 1$. So, defining the probability of choosing an element from a Borel subset of $[0,1]$ to be equivalent to the Lebesgue measure of that subset gives us that the probability of choosing a rational in $[0,1]$ is $0$, whilst the probability of choosing an irrational is $1$.
+\end{example}
+
+\begin{example}\label{example:cantor}
+We also give another interesting example from Folland \citep[p.~38]{GBF}. Recall the Cantor set $C$ from MA260. That is, the set constructed by, beginning with $[0,1]$, iteratively removing the middle third of each remaining interval. Since we first remove $1/3$ of an interval, then $2/9$, and then $4/27$ and so on in this way, we have that
+\[
+m(C) = 1 - \sum_{n=0}^{\infty} \frac{2^n}{3^{n+1}} = 1 - \frac{1}{3} \times \frac{1}{1-(2/3)} = 1 - 1 = 0.
+\]
+Hence, the Cantor set is an example of a set that has the cardinality of the continuum, yet measure zero.
+\end{example}
+
+%Real Analysis: Modern Techniques and their Applications; Gerald B. Folland, Page 38
+
+In general, an event $E \in \mathcal{F}$ on a probability space $(\Omega, \mathcal{F}, \mathbb{P})$ is said to happen \textit{almost surely} if $\mathbb{P}(E^c) = 0$ so, in the first example, an irrational number will be chosen almost surely and in the second, an element of $[0,1] \backslash C$ will be chosen almost surely.
+
+%We now have two key $\sigma$-algebras, namely the Borel $\sigma$-algebra and the Lebesgue $\sigma$-algebra, both of which will be used extensively in the construction of the integral and throughout the remainder of the essay.
+
+\subsection{Functions and Integration}
+
+\begin{definition}\citep[p.~94]{RMD}
+Let $(\Omega,\mathcal{F},m)$ be a measure space. Then, a function $f:\Omega \rightarrow \mathbb{R}$ is \textit{measurable} if
+\[
+f^{-1}(B) = \{x \in \Omega : f(x) \in B\} \in \mathcal{F}
+\]
+for every Borel set $B \in \mathcal{B}(\mathbb{R})$. If $(\Omega,\mathcal{F},\mathbb{P})$ is a probability space, then a measurable function on $\Omega$ is called a \textit{random variable}.
+\end{definition}
+
+Before we give an example to illustrate the idea of a measurable function we first recall the definition of an indicator function. Let $(\Omega, \mathcal{F}, m)$ be a measure space. Then, the \textit{indicator function} for some subset $A \subseteq \Omega$ is a function $\mathbf{1}_A:\Omega \to \mathbb{R}$ given by
+
+\[
+\mathbf{1}_A(x) = 
+\begin{cases}
+  1, & \text{if $x \in A$;} \\
+  0, & \text{otherwise.}
+\end{cases}
+\]
+
+\begin{example}\label{example:measfunc} Adapted from Capi\'nski and Kopp \citep[p.~59]{MC}.
+Let $([0,1],\mathcal{B}([0,1]),m)$ be a measure space, where $m$ is the Lebesgue measure restricted to $[0,1]$. We now define a set $Q := [0,1]\cap\mathbb{Q}$ and consider whether or not the indicator function $\mathbf{1}_Q:[0,1] \rightarrow \mathbb{R}$ given by
+\[
+\mathbf{1}_Q(x) = 
+\begin{cases}
+  1, & \text{if $x \in Q$;}\\
+  0, & \text{otherwise,}
+\end{cases}
+\]
+is measurable. To do this, take some Borel set $B \in \mathcal{B}(\mathbb{R})$. If $0 \in B$ and $1 \in B$, then $\mathbf{1}_Q^{-1}(B) = [0,1]$; if $0 \in B$ and $1 \notin B$, then $\mathbf{1}_Q^{-1}(B) = [0,1] \setminus \mathbb{Q}$; if $0 \notin B$ and $1 \in B$, then $\mathbf{1}_Q^{-1}(B) = [0,1] \cap \mathbb{Q}$ and if $0 \notin B$ and $1 \notin B$, then $\mathbf{1}_Q^{-1}(B) = \varnothing$. So, since $\mathbf{1}_Q^{-1}(B) \in \mathcal{B}([0,1])$ in any of these cases, it follows that $\mathbf{1}_Q^{-1}$ is a measurable function.
+\end{example}
+
+Using the idea of measure, we now have the tools to construct a far more powerful version of the integral than the Riemann integral. Consider the indicator function $\mathbf{1}_Q$ on the set $Q := [0,1] \cap \mathbb{Q}$. We know that the rationals are dense in the reals, so any non-degenerate interval $I \subseteq [0,1]$ contains both rationals and irrationals. Hence, the upper integral of $\mathbf{1}_Q$ is equal to $1$, while the lower integral is $0$, so $\mathbf{1}_Q$ is not Riemann integrable.
+
+We should however ask ourselves what we expect the value of this integral to be. Given there are countably many points over which the value of this function deviates from $0$, it would be reasonable to expect that, since the measure of a countable set is $0$ and the measure of $[0,1]$ is $1$, the integral of $\mathbf{1}_Q$ between $0$ and $1$ should be $0$. This motivates the following idea from Capi\' nski and Kopp \citep[pp.~75--78]{MC}.
+
+We will denote the integral for some function $f$ on a measure space $(\Omega, \mathcal{F}, m)$ by $\int_{\Omega} f {\dee}m$. Generalising the idea above, for some measure space $(\Omega, \mathcal{F}, m)$, and some $A \in \mathcal{F}$ we would like that
+\[
+\int_{\Omega} \mathbf{1}_A {\dee}m = m(A).
+\]
+
+%Let us generalise this idea so that we can integrate simple functions.
+
+Our approach for developing this integral will be to progressively incorporate a broader range of functions on which the integral is defined. So far, we have a reasonable notion of the integral for indicator functions, so let us now define the next class of function on which we can define the integral.
+
+\begin{definition} \citep[pp.~75--76]{MC}
+A \textit{simple function} is a function that can be written in the form
+\[
+\sum_{i=1}^{n} c_i \mathbf{1}_{A_i}
+\]
+where $A_i$ is a measurable subset of $\mathbb{R}$ for all $i = 1,\dots,n$. Then, for $c_i \geq 0$, we define the integral of a simple function to be
+\[
+\int_{\Omega} \sum_{i=1}^{n} c_i \mathbf{1}_{A_i} {\dee}m = \sum_{i=1}^{n} c_i m(A_i).
+\]
+as illustrated in Figure~\ref{Fig:simpleintegral}. Note that the heights of each rectangle in Figure~\ref{Fig:simpleintegral} correspond to each $c_i$ and the widths of each rectangle correspond to the measure of each $A_i$.
+\end{definition}
+
+\begin{figure}[hbpt]
+\caption{Integral of a simple function \citep[p.~76]{MC}}
+\centering
+\includegraphics[width = 3in]{Latex/Simple_Function_Integral}
+\label{Fig:simpleintegral}
+\end{figure}
+
+Note that, without the restriction that each $c_i$ be greater than $0$, this definition would give us problems. Suppose that there exist $i,j \in \{1,...,n\}$ such that $m(A_i) = m(A_j) = \infty$. Then, without loss of generality, if $c_i > 0$ and $c_j < 0$, then we end up with the sum $\infty - \infty$ which is not well-defined. To get around this issue, we could restrict the subsets $A_i$ to those with finite measure, however it is often convenient to include subsets of infinite measure, so instead we take each $c_i \geq 0$. We then adopt the convention that $\infty + \infty = \infty$ and $\infty + a = a + \infty = \infty$ for every $a \in \mathbb{R}$.
+
+We can now use this definition to define the Lebesgue integral for non-negative measurable functions. Let $f:\mathbb{R} \rightarrow [0,\infty]$ be a measurable function. Then we define
+\[
+\int_{\mathbb{R}} f {\dee}m = \sup\left\{\int_{\mathbb{R}} \phi: \phi \text{ is simple and } 0 \leq \phi \leq f\right\}.
+\]
+That is, for any measurable function $f:\mathbb{R} \rightarrow [0,\infty]$, we can get an arbitrarily good approximation for the integral of this function by integrating simple functions below $f$.
+
+It is now easy to extend this definition to arbitrary measurable functions. Let $f:\mathbb{R} \to \mathbb{R}$ be a measurable function. We first decompose $f$ into its positive and negative parts. That is, let $f^+ := \max(f,0)$ and $f^- := \max(-f,0)$. We then define the integral of $f$ to be
+\[
+\int_{\mathbb{R}} f {\dee}m = \int_{\mathbb{R}} f^+ {\dee}m - \int_{\mathbb{R}} f^- {\dee}m.
+\]
+It is indeed possible for the integral of a function to be infinite under this definition, possibly the simplest being the constant function $\mathbf{1}_\mathbb{R}:\mathbb{R} \to \mathbb{R}$, $\mathbf{1}_\mathbb{R}(x) = 1$ for every $x \in \mathbb{R}$, which we denote $\mathbf{1}_\mathbb{R}$ since it can be thought of as the indicator function for $\mathbb{R}$. Therefore, we say that a function $f$ is integrable if $\int_{\mathbb{R}} |f|{\dee}m < \infty$.
+
+\begin{definition} \citep[p.~114]{MC}
+If $X:\Omega \rightarrow \mathbb{R}$ is a random variable defined on a probability space $(\Omega,\mathcal{F},\mathbb{P})$, then the \textit{expectation} of $X$ is denoted $\mathbb{E}[X]$ and is given by
+\[
+\mathbb{E}[X] = \int_{\Omega} X {\dee}\mathbb{P}.
+\]
+\end{definition}
+
+We finish this section with a result about expectation that will be useful later.
+
+%We finish this section with a lemma about expectation that will prove to be rather useful in our studies of Brownian motion.
+
+\begin{lemma}\label{lem:expectation}
+Let $X:\Omega \to \mathbb{R}$ be a non-negative random variable. Then, $X$ is almost surely $0$ if and only if $\mathbb{E}[X] = 0$.
+\end{lemma}
+
+\begin{proof} Adapted from Folland \citep[pp.~110--111]{GBF}. We first prove the reverse direction. Suppose for contradiction that $\mathbb{E}[X] = 0$ and the set $A = \{\omega \in \Omega: X(\omega) > 0\}$ has strictly positive measure. That is, $\mathbb{P}(A) > 0$. Since $X$ is non-negative and $A \subseteq \Omega$, we have that the integral of $X$ on $\Omega$ is at least the integral of $X$ on $A$, so
+\[
+\mathbb{E}[X] = \int_{\Omega} X {\dee}\mathbb{P} \geq \int_A X {\dee}\mathbb{P} > 0,
+\]
+contradicting the fact that $\mathbb{E}[X] = 0$. Therefore, we must have that $\mathbb{P}(A) = 0$. To prove the forward direction, we first note that this result is fairly trivial when $X:\Omega \to \mathbb{R}$ is a simple function since, for subsets $A_i \subseteq \Omega$, $i \in  \{1,\dots,n\}$, we have that $X(\omega) = \sum_{i=1}^n c_i \mathbf{1}_{A_i}(\omega)$ and thus, $\mathbb{E}[X] = \int_{\Omega} X{\dee}\mathbb{P} = 0$ if, and only if, for each $i = 1,\dots,n$, either $a_i = 0$ or $\mathbb{P}(A_i) = 0$. We now proceed with the forward direction for general non-negative random variables. Suppose that $X(\omega) = 0$ almost surely. Then, if $Y:\Omega \to \mathbb{R}$ is a simple measurable function with $0 \leq Y(\omega) \leq X(\omega)$ for every $\omega \in \Omega$, we have that $Y(\omega) = 0$ almost surely. Hence, for $Y$ simple, we have that
+\[
+\mathbb{E}[X] = \int_{\Omega} X {\dee}\mathbb{P} = \sup_{Y \leq X} \int_{\Omega} Y {\dee}\mathbb{P} = 0,
+\]
+as required.
+\end{proof}
+
+%It is reasonably easy to extend this definition to every function $f:\mathbb{R} \rightarrow \mathbb{R}$.
+
+%Recall the question we asked at the beginning of this essay: if I select a number at random from the interval $[0,1]$, what is the probability that the number I choose is rational?\\
+
+%We have now built up enough theory to answer this question. Consider the measure space $([0,1], \mathcal{B}([0,1]), m)$, where $\mathcal{B}([0,1])$ is the Borel $\sigma$-algebra restricted to the interval $[0,1]$ and $m$ is the Lebesgue measure also restricted to $[0,1]$. Then, since $[0,1] \cap \mathbb{Q}$ is a countable set, it follows that $m([0,1] \cap \mathbb{Q}) = 0$, and since $[0,1] \cap \mathbb{R} \backslash \mathbb{Q}$ and $[0,1] \cap \mathbb{Q}$ are disjoint, we have that $m([0,1] \cap \mathbb{R} \backslash \mathbb{Q}) = 1$. So, defining the probability of a Borel subset of $[0,1]$ to be equivalent to the Lebesgue measure of that subset gives us that the probability of choosing a rational in $[0,1]$ is $0$, whilst the probability of choosing an irrational is $1$. In general, an event $E \in \mathcal{F}$ on a probability space $(\Omega, \mathcal{F}, \mathbb{P})$ is said to happen \textit{almost surely} if $\mathbb{P}(E^c) = 0$ so, in this case, an irrational number will be chosen \textit{almost surely}.\\
+
+%We can then generalise this idea to all Lebesgue-measurable subsets $\Omega \in \mathbb{R}$ with non-zero measure by standardising probability such that the probability of $\Omega$ is equal to $1$. In particular, denoting probability by $\mathbb{P}$ and the Lebesgue measure on $\Omega$ by $m_{\Omega}$, we set $\mathbb{P} = \frac{1}{m(\Omega)} \cdot m_{\Omega}$.\\
+
+%This section of the essay will be focused primarily on providing the necessary rigorous introduction to probability theory that we will need in the final chapter on Brownian motion. We aim to keep this section fairly concise as most concepts are analogous to some concept already introduced in the previous chapter. We start with some definitions.
+
+%This extension of naive probability motivates us to establish a formal framework for probability theory and this will be our focus in this section. We begin with some definitions.
+
+%\begin{definition}
+%A \textit{probability space} is an ordered triple $(\Omega, \mathcal{F}, \mathbb{P})$ such that $\mathcal{F}$ is a $\sigma$-algebra on $\Omega$ and $\mathbb{P}$ is a probability measure.
+%\end{definition}
+
+%\begin{definition}
+%Let $(\Omega, \mathcal{F}, \mathbb{P})$ be a probability space. A \textit{random variable} is a measurable function $X:\Omega \rightarrow \mathbb{R}$.
+%\end{definition}
+
+%In the case where $\Omega \subseteq \mathbb{R}$ and $\mathcal{B}$ is the Borel $\sigma$-algebra of $\Omega$, random variables are just Borel measurable functions from $\mathbb{R}$ to $\mathbb{R}$.\\
+
+%Consider the random variable $X:\Omega \rightarrow \mathbb{R}$. We can introduce a measure on the $\sigma$-algebra of Borel sets $\mathcal{B}$ by setting
+%\begin{equation}
+%\mathbb{P}_X(B) = \mathbb{P}(X^{-1}(B))
+%\end{equation}
+%for every $B \in \mathcal{B}$.
+
+%\begin{definition}
+%The function $\mathbb{P}_X$ is called the \textit{probability distribution} of the random variable $X$.
+%\end{definition}
+
+%We should check that $\mathbb{P}_X$ is indeed a measure. $\mathbf{***DO\text{ } THIS***}$
+
+
+
+%Let $X:\Omega \rightarrow \mathbb{R}$ be a random variable with probability distribution $\mathbb{P}_X$. 
+
+\section{Brownian Motion}
+
+Our attention will now be turned towards applying the concepts we have already developed to formally prove various properties of Brownian motion. We begin by recalling the definition of a stochastic process from ST227.
+
+%In this section we will use $C[0,\infty)$ to denote the collection of real-valued continuous functions on $[0,\infty)$ and $N(\mu,\sigma^2)$ to denote the Gaussian distribution with expectation $\mu$ and variance $\sigma^2$. We begin by recalling the definition of a stochastic process from ST227.
+
+%\begin{definition}
+%Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $T$ an index set (often interpreted as representing a set of times). A \textit{stochastic process} is a collection of random variables $\{X_t(\omega):t \in T\}$ on $\Omega$, such that each $X_t$ takes values in a set $S$, called the \textit{state space}.
+%\end{definition}
+
+\begin{definition}
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $T$ an index set, typically interpreted as representing a set of times. A \textit{stochastic process} is a collection of random variables $\{X_t:t \in T\}$ such that each random variable $X_t$ is defined on $\Omega$ and takes values in a set $S$, called the \textit{state space}.
+\end{definition}
+
+Alternatively, we can regard a stochastic process as a function $X:T \times \Omega \to S$ such that for each fixed $t \in T$, the mapping $X_t:\Omega \to S$, $X_t(\omega) := X(t,\omega)$ is a random variable \citep[p.~2]{JL}. We can then fix an outcome $\omega \in \Omega$, rather than fixing $t \in T$, so that the function $t \mapsto X(t,\omega):T \to S$ describes what we call a \textit{sample path} of the process, which is a deterministic function of $t$. We remark that, for any stochastic process, when we write $X_t$, we will be referring to the random variable $X_t:\Omega \to S$ and when we write $X(t,\omega)$, we will be referring to the value of the function $X$ at the point $(t,\omega) \in T \times \Omega$. We are now ready to present the main definition of the essay, adapted from M\"orters and Peres \citep[p.~7]{M&P} and Billingsley \citep[p.~498]{PB}.
+
+%Equivalently, we can view a stochastic process as a function $X:T \times \Omega \to S$ where $X(t,\omega) = X_t(\omega)$ represents the state of the process at time $t$ for a given outcome $\omega$. We are now ready for the main definition of the essay.
+
+\begin{comment}
+\begin{definition}
+The stochastic process $B_t = \{B(t), t \geq 0\}$ is a \textit{standard Brownian motion} if it satisfies the following properties.
+\begin{enumerate}
+\item $B_0 = 0$.
+\item $B_t$ is almost surely continuous. That is 
+\begin{equation}
+\mathbb{P}(B_t \in C[0,\infty)) = 1.
+\end{equation}
+\item $B_t$ has independent increments. That is, for all $0 < t_1 < t_2 < ... < t_n$, the increments $B_{t_2} - B_{t_1}, B_{t_3} - B_{t_2}, ... , B_{t_n} - B_{t_{n-1}}$ are independent.
+\item For $0 \leq s < t$,
+\begin{equation}
+B_t - B_s \sim N(0,t - s)
+\end{equation}
+\end{enumerate}
+\end{definition}
+\end{comment}
+
+\begin{definition}
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space. Then, a stochastic process $\{B_t:t \in [0,\infty)\}$, with state space $\mathbb{R}$, is called a \textit{Brownian motion (on $\Omega$)} if it satisfies the following properties.
+
+%Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $B = \{B(t):t \geq 0\}$ be a stochastic process on $\Omega$, with state space $\mathbb{R}$, indexed by a `time' variable $t \in [0,\infty)$. That is, $B:[0,\infty) \times \Omega \to \mathbb{R}$ is a function such that for each fixed $\omega \in \Omega$, the map $t \mapsto B(t,\omega)$ defines a real-valued function, called a \textit{sample path}, that describes the evolution of the process over time. The process $B$ is then called a \textit{linear Brownian motion} starting at $x \in \mathbb{R}$ if it satisfies the following properties.
+
+%is a function such that for each fixed $\omega \in \Omega$, the map $t \mapsto B(t,\omega)$ defines a real-valued function, called a \textit{sample path}, that describes the evolution of the process over time. The process $B$ is then called a \textit{linear Brownian motion} starting at $x \in \mathbb{R}$ if it satisfies the following properties.
+
+\begin{enumerate}
+\item Almost surely, the process starts at some $x \in \mathbb{R}$. Specifically, $\mathbb{P}(B_0 = x) = 1$.
+\item Almost surely, the sample paths of the process are continuous. That is,
+\[
+\mathbb{P}(\omega \in \Omega: t \mapsto B(t,\omega) \text{ is continuous on }[0,\infty)) = 1.
+\]
+\item The process has independent increments. In particular, for any collection of times $0 \leq t_1 \leq t_2 \leq \cdots \leq t_n$, the increments $B_{t_2} - B_{t_1}, B_{t_3} - B_{t_2}, \dots , B_{t_n} - B_{t_{n-1}}$ are independent random variables.
+\item For all $t \geq 0$ and $h > 0$, the increment $B_{t + h} - B_{t}$ is normally distributed with expectation zero and variance $h$.
+\end{enumerate}
+\end{definition}
+
+That is, a Brownian motion is just an uncountable collection of random variables $\omega \mapsto B(t,\omega)$, on the same probability space $(\Omega,\mathcal{F},\mathbb{P})$, satisfying each of the above properties. Note that, in the case of $x = 0$ in the first property, we say that $B$ is a \textit{standard Brownian motion} and, for each fixed $\omega \in \Omega$, we say that $t \mapsto B(t,\omega)$ is a \textit{standard sample path}, as in figure~\ref{BM_sim}.
+
+\begin{figure}[hbpt]
+\caption{A standard sample path in one-dimension \ref{app:code}}
+\centering
+\includegraphics[width = 3.5in]{Latex/Simulated_BM_2.png}
+\label{BM_sim}
+\end{figure}
+
+%The first property here is simply just convention telling us that the starting point is at $0$. We can standardise any process $B_t$ satisfying the final three properties but not the first as then the process $B_t - B_0$ will satisfy all four properties.\\
+
+It is important to remark at this stage that these are the properties that we would like Brownian motion to have based on observations, and in no way guarantees the existence of such a process. So, is it possible to construct a stochastic process satisfying all four of these properties? Well, it turns out that it is in fact possible \citep[pp.~489--494]{SIR}, but such a construction is fairly convoluted. For the purpose of this essay, we work under the assumption that Brownian motion does indeed exist as we are primarily interested in the further properties it has.
+
+\subsection{Basic Properties and Scaling}\label{sec:basicproperties}
+
+Let us begin by finding the expectation of a standard Brownian motion. More precisely, we will aim to find the expectation of each random variable $B_t$ for each fixed $t \in [0,\infty)$. Noting that linearity still holds for the Lebesgue integral, we have that $\mathbb{E}[B_t] = \mathbb{E}[B_0] + \mathbb{E}[B_t - B_0]$. Then, by normally distributed increments with expectation $0$, we have that $\mathbb{E}[B_t - B_0] = 0$ and since $B_0 = 0$ almost surely, we have that $B_0 = 0$ everywhere except some set of measure zero $A \subseteq \Omega$, so 
+\[
+\mathbb{E}[B_0] = \int_\Omega B_0{\dee}\mathbb{P} = \int_{\Omega \setminus A} 0 {\dee}\mathbb{P} + \int_A B_0 {\dee}\mathbb{P} = 0 + 0 = 0.
+\]
+Hence, $\mathbb{E}[B_t] = 0$ for every $t \in [0,\infty)$. This should make sense intuitively as a standard Brownian motion almost surely starts at $0$ and, since it is a random process, there is no deterministic tendency for it to move in any specific direction.
+
+%Let us begin by finding the expectation of Brownian motion. We know that Brownian motion has independent, normally distributed increments, that is $B(t_{i+1}) - B(t_i) \sim N(0, t_{i+1} - t_i)$. So, since any linear combination of Gaussian random variables is also Gaussian, it follows that any finite dimensional vector $(B(t_1), B(t_2),...,B(t_n))$ has a multivariate Gaussian distribution. Hence, $\mathbb{E}[B(t_i)] = 0$ for every $i = 1,...,n$. This makes sense intuitively as $B(0) = 0$ and there is no deterministic tendency for $B(t)$ to move in any specific direction.\\
+
+We now present the following scaling theorems, noting that their proofs are merely exercises in the definition of Brownian motion and have thus been relegated to appendix~\ref{proofs:scaling}.
+
+\begin{proposition}[Scaling invariance]\label{prop:scalinv}
+\citep[p.~12]{M&P} Let $(\Omega, \mathcal{F}, \mathbb{P})$ be a probability space and $\{B_t:t \geq 0\}$ be a standard Brownian motion on $\Omega$. Then, the stochastic process $\{X_t:t \geq 0\}$ given by $X_t = \frac{1}{a} B_{a^2t}$, for all $t \in [0,\infty)$, is also a standard Brownian motion on $\Omega$.
+\end{proposition}
+
+%Before we consider the next proposition, we will look at some key facts involving the expectation, variance and covariance of Brownian motion. We know that Brownian motion has independent, normally distributed increments, that is $B(t_{i+1}) - B(t_i) \sim N(0, t_{i+1} - t_i)$. So, since any linear combination of Gaussian random variables is also Gaussian, it follows that any finite dimensional vector $(B(t_1), B(t_2),...,B(t_n))$ has a multivariate Gaussian distribution. Hence, $\mathbb{E}[B(t_i)] = 0$ for every $i = 1,...,n$. This makes sense intuitively as $B(0) = 0$ and there is no deterministic tendency for $B(t)$ to move in any specific direction.\\
+
+%We now suppose that $t_i \leq t_j$ and consider the covariance of $B(t_i)$ and $B(t_j)$. We know that $\mathbb{E}[B(t_i)] = \mathbb{E}[B(t_j)] = 0$ and rewriting $B(t_j)$ as $B(t_i) + ((B(t_j) - B(t_i))$, we have that
+
+%\[
+%  \begin{aligned}
+%    \mathrm{Cov}(B(t_i),B(t_j)) & = \mathbb{E}[B(t_i)B(t_j)] - \mathbb{E}[B(t_i)]\mathbb{E}[B(t_j)]\\
+%      & = \mathbb{E}[B(t_i)(B(t_i) + ((B(t_j) - B(t_i)))]\\
+%      & = \mathbb{E}[B(t_i)^2] + \mathbb{E}[B(t_i)]\mathbb{E}[(B(t_j) - B(t_i))]\\
+%      & = \mathbb{E}[B(t_i)^2] = \mathrm{Var}[B(t_i)] = t_i,
+%  \end{aligned}
+%\]
+
+%noting that the fourth equality and the final equality both hold due to (14). We are now ready for our next property of Brownian motion.
+
+\begin{proposition}[Time inversion]\label{prop:timeinv}
+\citep[p.~13]{M&P} Let $(\Omega, \mathcal{F}, \mathbb{P})$ be a probability space and $\{B_t:t \geq 0\}$ be a standard Brownian motion on $\Omega$. Then, the stochastic process $\{X_t:t \geq 0\}$ given by
+\[
+X_t = 
+\begin{cases}
+  0, & \text{for $t = 0$,} \\
+  tB_{1/t}, & \text{for $t > 0$,}
+\end{cases}
+\]
+is also a standard Brownian motion on $\Omega$.
+\end{proposition}
+
+\begin{corollary}[Law of Large Numbers]
+Let $(\Omega, \mathcal{F}, \mathbb{P})$ be a probability space and $\{B_t:t \geq 0\}$ be a standard Brownian motion on $\Omega$. Then, $\lim_{t \to \infty} B_t/t = 0$, almost surely.
+\end{corollary}
+
+\begin{proof} \citep[p.~14]{M&P}
+This follows from proposition~\ref{prop:timeinv} as
+\[
+\lim_{t \to \infty} \frac{B_t(\omega)}{t} = \lim_{t \to \infty} \frac{B(t,\omega)}{t} = \lim_{t \to \infty} X\left(\frac{1}{t},\omega\right) = X(0,\omega) = X_0(\omega),
+\]
+and, since $X_t$ is a standard Brownian motion, we have that $X_0(\omega) = 0$, almost surely.
+\end{proof}
+
+That is, the deterministic function $t \mapsto t$ almost surely gets large faster than the random function $t \mapsto B(t,\omega)$. This phenomenon is illustrated in Figure~\ref{Fig:LLN}.
+
+\begin{figure}[hbpt]
+\caption{The law of large numbers for Brownian motion \ref{app:code}}
+\centering
+\includegraphics[width = 3.8in]{Latex/LLN_BM_2.png}
+\label{Fig:LLN}
+\end{figure}
+
+\subsection{The Fractal Paths of Brownian Motion}
+
+An interesting, and perhaps slightly surprising, property of the sample paths of Brownian motion is that, almost surely, they are nowhere differentiable. This tells us that each sample path has a fractal-like structure, in that it exhibits `roughness' regardless of how far you zoom in yet, at the same time, it is somewhat regular in the sense that it is continuous almost surely. Proof of this property \citep[p.~21]{M&P} is rather convoluted and is thus omitted from this essay, but we do present a proof of the following slightly weaker proposition. 
+
+\begin{comment}
+\begin{proposition}[Monotonicity]
+For any $a,b \in \mathbb{R}$ with $a < b$,  Brownian motion is not monotonic on $[a,b]$.
+\end{proposition}
+\end{comment}
+
+\begin{proposition}[Monotonicity]
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $\{B_t:t \geq 0\}$ be a Brownian motion on $\Omega$. Then, for all $a,b \in [0,\infty)$ with $a < b$ and all $\omega \in \Omega$, the sample path $t \mapsto B(t,\omega)$ is almost surely not monotonic on $[a,b]$.
+\end{proposition}
+
+\begin{proof}\citep[p.~18]{M&P}
+Fix $\omega \in \Omega$ and take some interval $[p,q] \subset [0,\infty)$ with $p,q \in \mathbb{Q}$ and $p < q$. Now, let $\{p = t_0, t_1, t_2,..., q = t_n\}$ be a partition of $[p,q]$, with each $t_i \in \mathbb{Q}$. Then, by independence of increments, the probability that each $B(t_{i+1},\omega) - B(t_i,\omega)$ is positive is $2^{-n}$ and likewise, that each is negative is also $2^{-n}$. Hence, the probability that each $B(t_{i+1},\omega) - B(t_i,\omega)$ has the same sign is $2^{-n} + 2^{-n} = 2 \cdot 2^{-n} = 2^{1 - n}$, which approaches $0$ as $n \to \infty$. Therefore, the probability that $t \mapsto B(t,\omega)$ is monotonic on $[p,q]$ is $0$. We now need to consider all intervals with rational endpoints simultaneously. We know that the set of all closed and bounded intervals $[p_i,q_i]$, with $p_i,q_i \in \mathbb{Q}$, is countable so, by Boole's inequality, we have that
+\[
+\mathbb{P}\left(\bigcup_{i=1}^{\infty} t \mapsto B(t,\omega) \text{ monotonic on } [p_i,q_i]\right) \leq \sum_{i=1}^{\infty}\mathbb{P}\left(t \mapsto B(t,\omega)\text{ monotonic on } [p_i,q_i]\right) = 0
+\]
+so, almost surely, $t \mapsto B(t,\omega)$ is not monotonic on every interval with rational endpoints. Then, since $\mathbb{Q}$ is dense in $\mathbb{R}$, every interval $[a,b]$ with $a < b$ will have some sub-interval $[p_i,q_i]$ with $p_i < q_i$ and $p_i,q_i \in \mathbb{Q}$. Hence, if $t \mapsto B(t,\omega)$ were monotonic on any interval $[a,b]$, it would necessarily be monotonic on a sub-interval $[p_i,q_i]$, which we have proven to be almost surely impossible. Thus, Brownian sample paths are almost surely not monotonic on every interval $[a,b]$.
+\end{proof}
+
+\begin{comment}
+\begin{proof}\citep[p.~18]{M&P}
+Fix $\omega \in \Omega$ and take some interval $[p,q] \subset [0,\infty)$ with $p,q \in \mathbb{Q}$ and $p < q$. Now, let $\{p = t_0, t_1, t_2,..., q = t_n\}$ be a partition of $[p,q]$, with each $t_i \in \mathbb{Q}$. Then, by independence of increments, the probability that each increment $B(t_{i+1},\omega) - B(t_i,\omega)$ is positive is $2^{-n}$ and likewise, that each increment is negative is also $2^{-n}$. Hence, the probability that each increment has the same sign is $2^{-n} + 2^{-n} = 2 \cdot 2^{-n} = 2^{1 - n}$, which approaches $0$ as $n \to \infty$. Therefore, the probability that $t \mapsto B(t,\omega)$ is monotonic on $[p,q]$ is $0$.
+
+Then, since $\mathbb{Q}$ is dense in $\mathbb{R}$, every interval $[a,b]$ with $a < b$ will have a sub-interval $[p,q]$ with $p < q$ and $p,q \in \mathbb{Q}$. Thus, if $t \mapsto B(t,\omega)$ were monotonic on any interval $[a,b]$, it would necessarily be monotonic on a subinterval $[p,q]$ with rational endpoints, which we have proven to be almost surely impossible. Thus, Brownian motion is almost surely not monotonic on every interval $[a,b]$.
+\end{proof}
+\end{comment}
+
+We should remark that this argument only works since the collection of sub-intervals of $[p,q]$ with rational end-points is countable. That is, it is not sufficient to simply choose a general interval $[a,b] \subset \mathbb{R}$ and take a countable sequence of smaller partitions as there are uncountably many partitions of $[a,b]$.
+%use our method for intervals with rational endpoints as we are only able to check a countable sequence of partition refinements.
+
+%The monotonicity property indicates that Brownian motion has a fractal-like structure, in that it exhibits "roughness" regardless of how far you zoom in, yet at the same time, it is somewhat regular in the sense that it is continuous almost surely. That is, for any $\varepsilon > 0$ and $a \geq 0$, $B(t)$ is almost surely not monotonic on the non-degenerate interval $[a,a + \varepsilon]$ yet, by definition, $B(t)$ is indeed continuous on this interval.
+
+\subsection{The Markov Property}
+
+In the context of stochastic processes, the Markov property refers to the notion of `memorylessness'. That is, a Markov process depends only on a single previous state at some time $t$, independent of all states before $t$. The aim of this section is to prove that Brownian motion is indeed a Markov process and to then strengthen this notion slightly in preparation for the final section of the essay. We begin with the following idea.
+
+We say that any two stochastic processes $\{X_t:t \in T\}$ and $\{Y_t:t \in T\}$ are \textit{independent} if, for any times $t_1,\dots,t_n \geq 0$ and $s_1,\dots,s_m \geq 0$, the random vectors $(X_{t_1},\dots,X_{t_n})$ and $(Y_{s_1},\dots,Y_{s_m})$ are independent \citep[p.~37]{M&P}. That is, each pair of random variables $X_{t_i}$ and $Y_{t_j}$ are independent. We can now prove our first version of the Markov property.
+
+%\begin{proposition}[The Markov Property]
+%Fix $s \geq 0$. Then if $\{B(t):t \geq 0\}$ is a Brownian motion, then $\{B(t + s) - B(s):t \geq 0\}$ is a Brownian motion independent of $\{B(t): 0 \leq t < s\}$.
+%\end{proposition}
+
+\begin{proposition}[The Markov Property]
+Let $(\Omega, \mathcal{F}, \mathbb{P})$ be a probability space. Let $\{B_t:t \geq 0\}$ be a standard Brownian motion on $\Omega$ and fix $s > 0$. Then, the stochastic process $\{B_{t+s} - B_s:t \geq 0\}$ is also a standard Brownian motion on $\Omega$, independent of $\{B_t:0 \leq t \leq s\}$.
+\end{proposition}
+
+\begin{proof} Developed from M\"orters and Peres \citep[p.~37]{M&P}.
+Fix $\omega \in \Omega$. At $t = 0$, we have that $B_{t+s} - B_s = B_s - B_s$ which is almost surely equal to $0$, so the process almost surely starts at $0$. Then, for path continuity, $t \mapsto B(t+s,\omega) - B(s,\omega)$ is continuous since $B(s,\omega)$ is constant and $t \mapsto B(t+s,\omega)$ is just a translation of the continuous function $t \mapsto B(t,\omega)$. Next, for any $0 \leq t_1 < t_2 < \dots <t_n$, we have $(B_{t_{i+1}+s} - B_{s}) - (B_{t_i+s} - B_{s}) = B_{t_{i+1}+s} - B_{t_i+s}$ which is independent of each other increment $B_{t_{k+1}+s} - B_{t_k+s}$, where $k \neq i$, by the independent increment property of Brownian motion. This increment is also normally distributed with mean $0$ and variance $t_i - t_j$ also from the definition of Brownian motion. Hence, $\{B_{t+s} - B_s:t \geq 0\}$ is a standard Brownian motion on $\Omega$. Finally, independence follows since $B_{t+s} - B_{s}$ is independent of $B_t - B_0 = B_t$ by independent increments.
+\end{proof}
+
+%\begin{proof}
+%We know that $B(t + s)$ a standard Brownian motion and subtracting that constant $B(s)$ only changes the starting point so it is clear that $B(t + s) - B(s)$ is a Brownian motion $B^*(t)$ with $B^*(0) = B(s)$. Independence follows immediately from independent increments.
+%\end{proof}
+
+We therefore have that Brownian motion is indeed a Markov process. However, it is possible to strengthen this property and we will do so in preparation for the final section of this essay. We remark that the remainder of this section on the Markov property serves to provide an intuitive understanding of the strong Markov property and thus, much of the rigour will be omitted. A more rigorous, yet far more convoluted, treatment of this topic can be found in M\"orters and Peres \citep[pp.~37--44]{M&P}. We begin by developing some intuition behind what is meant by a \textit{filtration}.
+
+A filtration is a collection of $\sigma$-algebras, $\{\mathcal{F}_t\}_{t \in T}$ such that each $\mathcal{F}_t$ contains all information available about a process up to the time $t$. To illustrate why this is a useful idea to consider in the context of stochastic processes, let us consider the following simple example. 
+
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and consider the stochastic process that arises from repeatedly flipping a fair coin with outcomes heads ($\mathbf{H}$) and tails ($\mathbf{T}$). Then $T = \mathbb{N}$ and $\Omega$ is the set of all infinite sequences of heads and tails. We can then consider a filtration $\mathbb{F} = \{\mathcal{F}_n\}_{n \in \mathbb{N}}$ that represents all events that could have occurred in this stochastic process up to some time $t$. If we let $\{\mathbf{H}\}$ represent all sequences with the first flip being a head, $\{\mathbf{TH}\}$ represents all sequences with the first flip being a tail and the second being a head, and likewise for all other sequences in this way, then $\mathcal{F}_1 = \{\varnothing,\{\mathbf{H}\},\{\mathbf{T}\},\Omega\}$ and $\mathcal{F}_2$ is the $\sigma$-algebra generated by $\{\{\mathbf{HH}\},\{\mathbf{HT}\},\{\mathbf{TH}\},\{\mathbf{TT}\}\}$. This continues for each $n \in \mathbb{N}$ where each successive $\mathcal{F}_n$ contains all information about the process available at time $n$. Notice that $\mathcal{F}_n \subseteq \mathcal{F}_{n+1}$ for each $n \in \mathbb{N}$ since all information about the process available at time $n$ is certainly also available at time $n+1$. We also remark that $\mathcal{F}_0 = \{\varnothing, \Omega\}$ since, at time $t = 0$, we don't know anything about the sequence of flips.
+
+In the context of Brownian motion we usually consider one of the following two filtrations. First, the filtration $\{\mathcal{F}_t^0\}_{t \geq 0}$ representing all information available about the Brownian motion up to time $t$, or second, the filtration $\{\mathcal{F}_s^+\}_{s \geq 0}$ defined by 
+\[
+\mathcal{F}_s^+ = \bigcap_{t > s} \mathcal{F}_t^0
+\]
+for each $s \geq 0$. That is, $\mathcal{F}_s^+$ contains all information in $\{\mathcal{F}_t^0\}_{t \geq 0}$ but also includes an `infinitesimal glance into the future' \citep[p.~37--38]{M&P}. We are now ready to present our final definition before the strong Markov property.
+
+%This is a nice fundamental property of Brownian motion but we will now aim to develop some intuition for a slightly stronger version of the Markov property.
+
+%We will now use this property to develop a slightly stronger version of the Markov property, beginning with recalling the following definition from ST227.
+
+%\begin{comment}
+%\begin{definition}
+%Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $T$ be some index set such that for every $t \in T$, $\mathcal{F}_t$ is a sub $\sigma$-algebra of $\mathcal{F}$. Then $(\mathcal{F}_t)_{t \in T}$ is a \textit{filtration} if $\mathcal{F}_m \subseteq \mathcal{F}_n$ for every $m \leq n$.
+%\end{definition}
+%\end{comment}
+
+%\begin{definition}
+%Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $\{X_t:t \in T\}$ a stochastic process, where $T$ is a well-ordered index set. A random variable $\tau:\Omega \rightarrow T \cup \{\infty\}$ is called a \textit{stopping time} if, for all $t \in T$, the event $\{\omega \in \Omega: \tau(\omega) \leq t\}$ is measurable with respect to the $\sigma$-algebra generated by $\{X_s:s \leq t\}$.
+%\end{definition}
+
+\begin{comment}
+\begin{definition} \citep[p.~37]{M&P}
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $T$ be some well-ordered index set, typically representing a set of times. A \textit{filtration (on $\Omega)$} is a collection of $\sigma$-algebras, $\mathbb{F} = \{\mathcal{F}_t\}_{t \in T}$ such that $\mathcal{F}_s \subseteq \mathcal{F}_t \subseteq \mathcal{F}$ for all $s \leq t$.
+\end{definition}
+
+To illustrate why this is a useful idea to consider in the context of stochastic processes, let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and consider the stochastic process that arises from repeatedly flipping a fair coin with outcomes heads ($H$) and tails ($T$). Then $T = \mathbb{N}$ and $\Omega$ is the set of all infinite sequences of heads and tails. We can then consider a filtration $\mathbb{F} = \{\mathcal{F}_t\}_{t \in \mathbb{N}}$ that represents all events that could have occurred in this stochastic process up to some time $t$. That is, let $\{H\}$ represent all sequences with the first flip being a head, $\{TH\}$ represents all sequences with the first flip being a tail and the second being a head and likewise for all other sequences in this way. Then $\mathcal{F}_1 = \{\varnothing,\{H\},\{T\},\Omega\}$, and $\mathcal{F}_2$ is the $\sigma$-algebra generated by $\{HH\}$, $\{HT\}$, $\{TH\}$ and $\{TT\}$. Note that, by convention, $\mathcal{F}_0 = \{\varnothing, \Omega\}$.
+
+%In a general probability space $(\Omega,\mathcal{F},\mathbb{P})$, the sets in $\mathcal{F}$ nearly always represents events. For instance, consider the stochastic process given by repeatedly flipping a fair coin with outcomes heads ($H$) and tails ($T$). Then, for each flip, assuming we know all information about the outcomes in the process, we have that $\Omega = \{H,T\}$ and $\mathcal{F} = \{\varnothing,H,T,\Omega\}$, where $\varnothing$ represents the event that the coin is not flipped, which occurs with probability zero and $\Omega$ represents the event that the coin is flipped, which occurs with probability one.
+
+%In the overall stochastic process, $\Omega$ is the set of all infinite sequences of heads and tails. Then, each $\sigma$-algebra $\mathcal{F}_t$ in the filtration represents all events that could have occurred in this stochastic process up to some time $t$. In the case of this coin flip example, let $\{H\}$ represent all sequences with the first flip being a head, $\{TH\}$ represent all sequences with the first flip being a tail and the second being a head and likewise for all other sequences in this way. We have that $T = \mathbb{N}$, so $\mathcal{F}_1 = \{\varnothing,\{H\},\{T\},\Omega\}$, and $\mathcal{F}_2$ is the smallest $\sigma$-algebra containing $\{HH\}$, $\{HT\}$, $\{TH\}$ and $\{TT\}$. Note that, by convention, $\mathcal{F}_0 = \{\varnothing, \Omega\}$.
+
+We will say that a stochastic process is \textit{independent of a filtration} if, for any finite collection of times $\{t_1,\dots,t_n\}$, the joint distribution of $(X_{t_1},\dots,X_{t_n})$ is independent of the $\sigma$-algebra $\mathcal{F}_{t_n}$. That is, for any event $A \in \mathcal{F}_{t_n}$ and any Borel sets $B_1,\dots,B_n \in \mathcal{B}(\mathbb{R})$, we have that
+\[
+\mathbb{P}(\{X_{t_1} \in B_1,\dots,X_{t_n} \in B_n\} \cap A) = \mathbb{P}(\{X_{t_1} \in B_1,\dots,X_{t_n} \in B_n\}) \cdot \mathbb{P}(A),
+\]
+where $X_{t_k} \in B_k$ denotes the pre-image of $B_k$ under $X_{t_k}$. We now present the final definition before the main theorem of this section.
+\end{comment}
+
+\begin{definition} \citep[p.~40]{M&P}
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space with filtration $\{\mathcal{F}_t\}_{t \in T}$, where $T$ is a well-ordered index set. Then, a random variable $\tau:\Omega \rightarrow T \cup \{\infty\}$ is called a \textit{stopping time} if
+\[
+\{\omega \in \Omega: \tau(\omega) \leq t\} \in \mathcal{F}_t
+\]
+for every $t \in T$.
+\end{definition}
+
+That is, a stopping time is a random time $\tau$ that depends on information up to that time but not beyond that time. In our coin flip example, we have that `the time at which the second tail is flipped' is a stopping time but `the last head before the third tail is flipped' is not a stopping time since we do not yet know the value of the next coin flip.
+
+\begin{comment}
+Let us now apply these these ideas to Brownian motion. Define a collection of sets
+\[
+\mathcal{G} := \{\{\omega \in \Omega:B(s,\omega) \in B\}: s \in [0,t], B \in \mathcal{B}(\mathbb{R})\}.
+\]
+Then, there is a natural filtration for Brownian motion $\{\mathcal{F}_t^0\}_{t \in T}$ given by $\mathcal{F}_t^0 := \sigma(\mathcal{G})$, the $\sigma$-algebra generated by $\mathcal{G}$, for each fixed time $t \in T$. By the Markov property, we have that $B_{t+s} - B_{s}$ is independent of $\mathcal{F}_t^0$ but it is indeed possible to strengthen this property slightly. To do this, we define
+\[
+\mathcal{F}_s^+ = \bigcap_{t < s} \mathcal{F}_t^0.
+\]
+We do not concern ourselves with proving that $\mathcal{F}_t^0$ and $\mathcal{F}_s^+$ are filtrations but, intuitively, we can think of $\mathcal{F}_t^0$ as containing all information about the Brownian motion up to time $t$ and $\mathcal{F}^+(t)$ as providing an infinitesimally small glance into the future.
+\end{comment}
+
+%Let $\{B_t:t \geq 0\}$ be a Brownian motion on a probability space $(\Omega,\mathcal{F},\mathbb{P})$. We now define a filtration
+%\[
+%\mathcal{F}^0(t) = \sigma(B(s):0 \leq s \leq t).
+%\]
+%That is, $\mathcal{F}^0(t)$ is the filtration that includes each $\sigma$-algebra generated by $B_s$  Intuitively, we can think about this as the set containing all information about the Brownian motion $B(s)$ up to time $t$.\\
+
+%\begin{definition}
+%A random variable $\tau$ taking values in $[0,\infty]$ and defined on some probability space with filtration $(\mathcal{F}(t):t \geq 0)$ is called a stopping time with respect to $(\mathcal{F}(t):t \geq 0)$ if for every $t \in T$, the event $\{\tau \leq t\} \in \mathcal{F}$.
+%\end{definition}
+
+\begin{comment}
+\begin{example}\label{ex:filtration}
+To illustrate this idea we give the example of repeatedly flipping a fair coin at each  discrete time $n \in \mathbb{N}_0$. Heuristically, each $\mathcal{F}_n$ will be a $\sigma$-algebra giving us all information about this process available up to time $n$. That is, $\mathcal{F}_0 = \{\varnothing,\Omega\}$ is the information available at time $0$ - either the coin is flipped, with probability $1$ or it isn't, with probability $0$. Then, at $n = 1$, $\mathcal{F}_1 = \{\varnothing, A_H, A_T, \Omega\}$ where $A_H$ is the set of all outcomes with the first flip being a head, and $A_T$ likewise for tails. This idea continues for each $\mathcal{F}_n$ with $n \geq 3$ where each $\mathcal{F}_{n}$ is entirely contained within $\mathcal{F}_{n+1}$ since at time $n+1$, all  information about the process at time $n$ is known.
+\end{example}
+
+Let us now consider a filtration for Brownian motion. If $\{B(t):t \geq 0\}$ is some Brownian motion on a probability space, then define a filtration $(\mathcal{F}^0(t):t \geq 0)$ by
+\[
+\mathcal{F}^0(t) = \sigma(B(s):0 \leq s \leq t).
+\]
+That is, $\mathcal{F}^0(t)$ is the smallest filtration containing all events of the form $\{B(s) \leq a\}$ for $a \in \mathbb{R}$ and $s \leq t$. Intuitively, we can think about this as the set containing all information about the Brownian motion $B(s)$ up to time $t$.
+
+By the Markov property, we have that $B(t+s) - B(s)$ is independent of $\mathcal{F}^0(t)$ but it is indeed possible to strengthen this property slightly. To do this, we define
+\[
+\mathcal{F}^+(s) = \bigcap_{t < s} \mathcal{F}^0(t).
+\]
+\end{comment}
+\begin{comment}
+Clearly, $\mathcal{F}^+(t)$ is a filtration and $\mathcal{F}^0(t) \subseteq \mathcal{F}^+(t)$. We can think of $\mathcal{F}^+(t)$ as providing an infinitesimally small glance into the future.
+
+\begin{proposition}
+Fix $s \in \mathbb{R}$ and define $X(t) = B(s + t) - B(s)$. Then $X(t)$ is a standard Brownian motion independent of $\mathcal{F}^+(t)$.
+\end{proposition}
+
+\begin{proof}
+By continuity, we have that
+\[
+B(t+s) - B(s) = \lim_{n \rightarrow \infty} B(t + s_n) - B(s_n)
+\]
+for any strictly decreasing sequence $s_n \rightarrow s$. Then, by the Markov property, for any $0 \leq t_1 < t_2 < ... < t_k$, the vector
+\[
+(B(t_1 + s_n) - B(s_n),...,B(t_k + s_n) - B(s_n))
+\]
+is independent of $\mathcal{F}^0(s_n)$ and since $\mathcal{F}^+(s) \subseteq \mathcal{F}^0(s_n)$, it follows that this vector is independent of $\mathcal{F}^+(s)$ as well. Noting that the limit of a sequence of random variables that are independent of a $\sigma$-algebra is also independent of that $\sigma$-algebra completes the proof.
+\end{proof}
+
+%\begin{proposition}[Reflection Principle]
+%Let $\{B(t):t \geq 0\}$ be a Brownian motion with some stopping time $T$. Then the process $\{B^*(t): t \geq 0\}$ defined by
+%\[
+%B^*(t) = 
+%\begin{cases}
+%  B(t), & \text{if $0 \leq t \leq T$,} \\
+%  2B(T) - B(t), & \text{if $t > T$,}
+%\end{cases}
+%\]
+%is a Brownian motion.
+%\end{proposition}
+\end{comment}
+
+\begin{comment}
+\begin{definition}
+The $\sigma$-algebra $\mathcal{F}^+(0)$ is called the \textit{germ $\sigma$-algebra}. \textbf{PROBABLY REMOVE}
+\end{definition}
+
+\begin{proposition}[Blumenthal's 0-1 Law]
+Let $x \in \mathbb{R}$ and $A \in \mathcal{F}^+(0)$. Then $\mathbb{P}_x(A) = 0$ or $\mathbb{P}_x(A)$. \textbf{PROBABLY REMOVE}
+\end{proposition}
+\end{comment}
+
+\begin{comment}
+\begin{definition}
+Let $(\Omega,\mathcal{F})$ be a measurable space with filtration $(\mathcal{F}_t)_{t \in T}$, where $T$ is some index set. Then a random variable $\tau:\Omega \rightarrow T \cup \{\infty\}$ is called a \textit{stopping time} if
+\[
+\{\omega: \tau(\omega) \leq t\} \in \mathcal{F}_t
+\]
+for every $t \in T$.
+\end{definition}
+
+We go back to example~\ref{ex:filtration} of repeatedly flipping a fair coin to demonstrate this idea. The time at which the second head is observed is a stopping time but the time at which 'the last head before the third tail is flipped' is not a stopping time since we do not yet know the value of the next coin flip.
+\end{comment}
+
+We are now able to quote the strong version of the Markov property. Note that we will not worry about precisely what it means for a stochastic process to be independent of a filtration in the following proposition, but can intuitively think about this as the process being independent of any information available in that filtration. Proof of the strong Markov property is beyond the scope of this essay and can be found in M\"orters and Peres \citep[p.~43-44]{M&P}.
+
+\begin{proposition}[The Strong Markov Property]\citep[p.~43]{M&P}
+For every almost surely finite stopping time $\tau$, the process
+\[
+\{B(\tau + t) - B(\tau): t \geq 0\}
+\]
+is a standard Brownian motion independent of $\mathcal{F}^+(t)$.
+\end{proposition}
+
+\subsection{The Zero Set}
+
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $\{B_t:t\ \geq 0\}$ be a standard Brownian motion on $\Omega$. Then, for each sample path $t \mapsto B(t,\omega)$, the zero set of that sample path is defined as $\mathcal{Z}_\omega := \{t \geq 0:B(t,\omega) = 0\}$. That is, for each $\omega \in \Omega$, $\mathcal{Z}_\omega$ is the set of times $t \in [0,\infty)$ such that the sample path $t \mapsto B(t,\omega)$ returns to $0$. Is it clear by the first property of Brownian motion that, almost surely, $0 \in \mathcal{Z}_\omega$ but there are many questions that we could ask about this set that may not be immediately clear. For instance, is this set finite, countable or uncountable? Is it bounded? Is it compact? This final section of the essay will aim to prove some nice measure-theoretic and topological properties of $\mathcal{Z}_\omega$ in order to answer some of these questions. We begin with the following proposition.
+
+%Building up to perhaps the slightly surprising result that $\mathcal{Z}$ is homeomorphic to a rather familiar set. We begin with the following proposition.
+
+\begin{proposition}
+For each $\omega \in \Omega$, $\mathcal{Z}_\omega$ almost surely has Lebesgue measure zero.
+\end{proposition}
+
+\begin{proof} Adapted from Karatzas and Shreve \citep[p.~105]{IK}.
+Consider the random variable $m(\mathcal{Z}_\omega)$, where $m$ denotes the Lebesgue measure. By lemma~\ref{lem:expectation}, since the Lebesgue measure is non-negative, it suffices to show that $\mathbb{E}[m(\mathcal{Z}_\omega)] = 0$. Noting that Fubini's theorem from MA263 still holds for the Lebesgue integral and allows us to interchange the order of double integrals \citep[p.~171]{MC}, we have that
+\[
+\mathbb{E}[m(\mathcal{Z}_\omega)] = \mathbb{E} \left[\int_{0}^{\infty} \mathbf{1}_{\{B_t = 0\}} {\dee}t \right] = \int_{0}^{\infty} \mathbb{E}[\mathbf{1}_{\{B_t = 0\}}]{\dee}t = \int_{0}^{\infty} \mathbb{P}(B_t = 0){\dee}t.
+\]
+Then, since $B_t$ is a random variable with state space $\mathbb{R}$ and $\{0\} \in \mathbb{R}$ has measure zero, $\mathbb{P}(B_t = 0) = 0$ for every $t \in [0,\infty)$. It follows that $\int_{0}^{\infty} \mathbb{P}(B_t(\omega) = 0){\dee}t = 0$ and hence, $\mathbb{E}[m(\mathcal{Z}_\omega)] = 0$, as required.
+\end{proof}
+
+Therefore, similarly to the set of rationals from example~\ref{example:rationals} and the Cantor set from example~\ref{example:cantor}, we have yet another example of a set with Lebesgue measure zero. Our next aim will be to prove that the zero set is almost surely a perfect set. In particular, we would like to show that, for every $\omega \in \Omega$, with probability one, $\mathcal{Z}_\omega$ is closed and has no isolated points. There are two key results that are not proven in this essay that we will use in this proof. The first is that the zero set is almost surely unbounded and the second is that, for any $\varepsilon > 0$, a standard Brownian sample path has infinitely many zeros in the interval $[0,\varepsilon]$ with probability one \citep[pp.~104--105]{IK}. We now proceed with the proof.
+
+%It is also true that, almost surely, Brownian motion will return to the origin infinitely often \citep[p.~104]{IK}. To show this, we give the following heuristic.
+
+\begin{proposition}\label{prop:perfectset}
+Almost surely, the zero set is closed and has no isolated points.
+\end{proposition}
+
+\begin{proof}\citep[p.~48]{M&P}
+Fix $\omega \in \Omega$. Closure follows almost immediately from the almost sure continuity of sample paths since for any sequence $(t_n) \in \mathcal{Z}_\omega$ with $t_n \to t$, we have that $B(t_n,\omega) = 0$ for all $n$ so, by continuity,
+\[
+B(t,\omega) = \lim_{n \rightarrow \infty} B(t_n,\omega) = \lim_{n \rightarrow \infty} 0 = 0,
+\]
+so $t \in \mathcal{Z}_\omega$. We now prove that $\mathcal{Z}_\omega$ has no isolated points. Fix $q \in \mathbb{Q}$ and define $\tau_q := \inf\{t \geq q: B(t,\omega) = 0\}$. Then $\tau_q$ is a stopping time and since the probability that the zero set is unbounded is one, $\tau_q$ is almost surely finite. By the Strong Markov property, we have that $B_{t + \tau_q} - B_{\tau_q}$ is a standard Brownian motion so, noting that a Brownian sample path has infinitely many zeros in any interval $[0,\varepsilon]$ with $\varepsilon > 0$, it follows that $\tau_q$ is not isolated from the right.
+
+We now need to check that $\tau_q$ is not isolated from the left. Let $t \in \mathcal{Z}_\omega$ be different to every $\tau_q$ with $q \in \mathbb{Q}$ and let $(q_n)$ be an increasing sequence with $q_n \in \mathbb{Q}$ for every $n$, such that $q_n \rightarrow t$. Then, defining the sequence $t_n = \tau_{q_n}$, we have that $t_n \geq q_n$ since each $t_n$ is in $\{t:t \geq q_n\}$ and that $t_n < t$ since each $t_n$ is the infimum of $\{t:t \geq q_n\}$. Since $q_n \rightarrow t$, we have that $t_n \rightarrow t$, and hence $t$ is not isolated from the left.
+\end{proof}
+
+We finish this section with a concluding discussion about the some further properties of $\mathcal{Z}_\omega$. If we define $\mathcal{Z}_\omega^\tau := \mathcal{Z}_\omega \cap [0,\tau]$, that is let $\mathcal{Z}_\omega^\tau$ be the zero set restricted to some bounded time interval $[0,\tau]$, then $\mathcal{Z}_\omega^\tau$ is clearly bounded and is closed by proposition~\ref{prop:perfectset}. Therefore, by the Heine-Borel theorem, $\mathcal{Z}_\omega$ is compact. It can also be shown that $\mathcal{Z}_\omega^\tau$ is metrisable and totally disconnected though we don't concern ourselves with the proofs of these properties. Thus, by Brouwer's theorem \citep[pp.~8--9]{MF}, the zero set of Brownian motion on some finite time interval $[0,\tau]$ is homeomorphic to the Cantor set from example~\ref{example:cantor}. It is worth taking a moment to reflect on the significance of this result. With probability one, the zero set of Brownian motion, a natural and widely studied object in the context of particle motion, is homeomorphic to the Cantor set, a seemingly unrelated and abstract construct frequently encountered in real analysis.
+
+%That is, $\mathcal{Z}_\omega$, a natural set to consider when modelling the motion of particles, is homeomorphic to the Cantor set, a seemingly unrelated set that frequently appears in analysis, a result that is hopefully somewhat surprising.
+
+%We should take a step back to really appreciate this result. With probability one, the zero set of Brownian motion, a very natural set to consider when modelling the motion of particles, is homeomorphic to the Cantor set, a seemingly unrelated set that is frequently used in real analysis. Hopefully, this result should be at least somewhat surprising.
+
+%If we define the zero set over some finite time interval $[0,\tau]$, that is, set $\mathcal{Z}_{\tau} := \mathcal{Z} \cap [0,\tau]$ then, since $\mathcal{Z}_{\tau}$ is closed and clearly bounded, it is compact by the Heine-Borel theorem. Then, by the previous propositions, it is also totally disconnected with no isolated points. Thus, by Brouwer's theorem \citep[pp.~8--9]{MF}, the zero set of Brownian motion on some finite time interval $[0,\tau]$ is homeomorphic to the Cantor set from example~\ref{example:cantor}.
+
+%The next property that we consider in the build up to our proof on non-differentiability relies on the Hewitt-Savage 0-1 law. To understand this theorem, we first give a definition.
+
+%\begin{definition}
+%A \textit{finite permutation} is a bijection $\sigma:\mathbb{N} \rightarrow \mathbb{N}$ such that $\sigma(i) \neq i$ for only finitely many $i$.
+%\end{definition}
+
+%The statement of the Hewitt-Savage 0-1 law is that if $(X_n)_{n \geq 1}$ is a sequence of independent and identically distributed random variables taking values in a set $A$, then any event whose occurrence is determined by the values of these random variables and whose occurrence is unchanged by finite permutations of the indices, has probability either $0$ or $1$. Proof of this theorem is given in \citep{HS}. We are now ready for our final proposition before the statement of non-differentiability.
+
+%\begin{definition}
+%An event $\{X_1,X_2,X_3,... \in A\}$ is called \textit{exchangeable} on a probability space $(\Omega, \mathcal{F}, \mathbb{P})$ if, for any finite permutation $\sigma:\mathbb{N} \rightarrow \mathbb{N}$ acting on the indices of the random variables, the joint probability distribution of the permuted sequence $X_{\sigma(1)},X_{\sigma(2)},X_{\sigma(3)},...$ is the same as the joint probability distribution of the original sequence.
+%\end{definition}
+
+%\begin{proposition}
+%Almost surely,
+%\[
+%\limsup_{n \to \infty} \frac{B(n)}{\sqrt{n}} = \infty \text{ and } \liminf_{n \to \infty} \frac{B(n)}{\sqrt{n}} = -\infty
+%\]
+%\end{proposition}
+
+\section{Conclusion}
+
+This essay has provided a rigorous foundation for understanding Brownian motion, beginning with measure theory and progressing to its formal probabilistic definition and some of its key properties such as monotonicity, the Markov property and the structure of its zero set. 
+
+One natural progression from this essay is the study of stochastic calculus. Unlike `ordinary' calculus that focuses on deterministic functions, stochastic calculus focuses on functions that exhibit random fluctuations such as Brownian sample paths. This topic is widely applicable in the field of mathematical finance \citep[Preface]{K&R}, for instance, it is essential in the derivation of the Black-Scholes equation, possibly the most famous formula in finance, used for pricing European options. That is, computing a fair price for the right but not the obligation to buy or to sell a financial security, such as a stock, on some agreed upon expiration date. A treatment of this subject can be found in Karatzas and Shreve \citep{IK} or Cohen and Elliot \citep{SC}.
+
+%Additionally, topics such as fractional Brownian motion, Lévy processes, and connections to quantum field theory offer fascinating extensions of the ideas presented here. Texts such as Brownian Motion and Stochastic Calculus by Karatzas and Shreve or Stochastic Differential Equations by Øksendal provide deeper insights into these applications and theoretical developments.
+
+\appendix
+
+\section{Appendix}
+\begin{comment}
+\subsection{Integral Theorems}
+
+\begin{theorem}[Fatou's Lemma]
+Let $(\Omega, \mathcal{F}, m)$ be a measure space and $f_n:\Omega \rightarrow \mathbb{R}$ a sequence of non-negative measurable functions. Then
+\[
+\int_\Omega (\lim \inf f_n) dm \leq \lim \inf \int_\Omega (f_n) dm
+\]
+\end{theorem}
+
+\begin{proof}\citep[pp.~82-84]{MC}\end{proof}
+
+\begin{theorem}[Monotone Convergence Theorem]
+Let $f_n:\Omega \rightarrow \mathbb{R}$ be a monotonically increasing sequence of non-negative measurable functions, such that $f_n \to f$ pointwise and $n \to \infty$. Then $f$ is measurable and
+\[
+\lim_{n \to \infty} \int_\Omega f_n dm = \int_\Omega f dm.
+\]
+\end{theorem}
+
+\begin{proof}\citep[pp.~84-85]{MC}\end{proof}
+
+\begin{theorem}[Dominated Convergence Theorem]
+Suppose $\Omega \in \mathcal{M}$. Let $(f_n)$ be a sequence of measurable functions such that $|f_n(x) \leq g(x)|$ for all $x$ and $n \geq 1$, where $g$ is integrable over $\Omega$. If $f = \lim_{n \rightarrow \infty} f_n$ almost everywhere, then $f$ is integrable over $\Omega$ and
+\[
+\lim_{n \rightarrow \infty} \int_{\Omega} f_n(x) dm = \int_{\Omega} f dm.
+\]
+\end{theorem}
+
+\begin{proof}\citep[p.~93]{MC}\end{proof}
+\end{comment}
+
+\subsection{Proof of Scaling Properties}\label{proofs:scaling}
+
+In this section we present the proofs of the aforementioned scaling properties of Brownian motion in section~\ref{sec:basicproperties}.
+
+\begin{proof}[\textbf{Proof of Proposition~\ref{prop:scalinv} (Scaling Invariance)}]
+\citep[p.~12]{M&P} It is fairly immediate that $X_0 = \frac{1}{a} B_0 = 0$ and since $X_t$ just involves a time and amplitude scaling of $B_t$, we have that $X_t$ is also almost surely continuous. To check independence of increments, observe that
+\[
+X_t - X_s = \frac{1}{a} B_{a^2t} - \frac{1}{a} B_{a^2s} = \frac{1}{a} (B_{a^2t} - B_{a^2s}).
+\]
+Since $B_{a^2t} - B_{a^2s}$ is independent of previous increments and depends only on the time difference $a^2t - a^2s$, it follows that $X_{t}$ has independent increments. To check the final property, we observe that $B_{a^2t} - B_{a^2s} \sim N(0, a^2t - a^2s)$ so $X_{t} - X_{s}$ has variance $\frac{1}{a^2} (a^2t - a^2s) = (t - s)$ and therefore, $X_{t} - X_{s} \sim N(0, t - s)$.
+\end{proof}
+
+Before we can prove our next proposition, we should look at the covariance of Brownian motion. Suppose that $t_i \leq t_j$ and consider the covariance of $B_{t_i}$ and $B_{t_j}$. We know that $\mathbb{E}[B_{t_i}] = \mathbb{E}[B_{t_j}] = 0$ and rewriting $B_{t_j}$ as $B_{t_i} + (B_{t_j} - B_{t_i})$, we have that
+
+\[
+  \begin{aligned}
+    \mathrm{Cov}(B_{t_i},B_{t_j}) & = \mathbb{E}[B_{t_i}B_{t_j}] - \mathbb{E}[B_{t_i}]\mathbb{E}[B_{t_j}]\\
+      & = \mathbb{E}[B_{t_i}(B_{t_i} + ((B_{t_j} - B_{t_i}))]\\
+      & = \mathbb{E}[B_{t_i}^2] + \mathbb{E}[B_{t_i}]\mathbb{E}[(B_{t_j} - B_{t_i})]\\
+      & = \mathbb{E}[B_{t_i}^2] = \mathrm{Var}[B_{t_i}] = t_i.
+  \end{aligned}
+\]
+
+We are now ready to prove the time inversion property.
+
+\begin{proof}[\textbf{Proof of Proposition~\ref{prop:timeinv} (Time Inversion)}]
+\citep[p.~13]{M&P} The fact that $X_{0} = 0$ is immediate by definition. It is also clear that continuity holds for every $t > 0$ so we need only check continuity at $0$. Since $\mathbb{Q}$ is countable, the distribution of $\{X_{t}: t \in [0,\infty) \cap \mathbb{Q}\}$ is the same as for a Brownian motion, so
+\[
+\lim_{t \to 0^+, \text{ } t \in \mathbb{Q}} X(t,\omega) = 0, \text{ almost surely}.
+\]
+Then, since $\mathbb{Q}$ is dense in $\mathbb{R}$, it follows by path continuity that
+\[
+\lim_{t \to 0^+} X(t,\omega)  = \lim_{t \to 0^+, \text{ } t \in \mathbb{Q}} X(t,\omega) = 0
+\]
+so $t \mapsto X(t,\omega)$ is almost surely continuous at $t = 0$. For the third property, we have that
+\[
+  \begin{aligned}
+    \mathrm{Cov}(X_{t + h}, X_{t}) & = \mathrm{Cov}((t + h)B_{1/(t + h)},tB_{1/t})\\
+      & = t(t + h)\mathrm{Cov}(B_{1/(t + h)}, B_{1/t})\\
+      & = t(t + h) \cdot 1/(t + h) = t.
+  \end{aligned}
+\]
+Hence, $\mathrm{Cov}(X_{t}, X_{t + h} - X_{t}) = \mathrm{Cov}(X_{t}, X_{t + h}) - \mathrm{Var}(X_{t}) = t - t = 0$, so $X_{t}$ and $X_{t + h} - X_{t}$ are independent (as we have seen from ST232 that zero covariance implies independence for jointly Gaussian random variables) and thus, $X_{t}$ satisfies the property of independent increments. To check the final property, we have that 
+
+\[
+\mathbb{E}[X_{t + h} - X_{t}] = \mathbb{E}[X_{t + h}] - \mathbb{E}[X_{t}] = 0 - 0 = 0
+\]
+and 
+\[
+  \begin{aligned}
+    \mathrm{Var}(X_{t + h} - X_{t}) & = \mathrm{Var}(X_{t + h}) + \mathrm{Var}(X_{t}) - 2\mathrm{Cov}(X_{t + h}, X_{t})\\
+      & = (t + h) + (t) - 2(t) = h,
+  \end{aligned}
+\]
+so our increments have the correct expectation and variance and thus, $X_{t}$ is a standard Brownian motion.
+\end{proof}
+
+\subsection{Code}\label{app:code}
+
+The following code was used to plot figure~\ref{BM_sim_2d} in RStudio under the assumption that the motion of a pollen particle can be modelled by Brownian motion in two dimensions. Note that figure~\ref{BM_sim_2d} depicts the path of a simple random walk in two dimensions with 5000 time steps so, while this visually resembles a Brownian sample path, it is important to note that this is a discrete-time process rather than a true sample path.
+
+\begin{tcolorbox}
+\begin{verbatim}
+x = rnorm(5001, 0 ,1)
+y = rnorm(5001, 0 ,1)
+Btx = cumsum(x)
+Bty = cumsum(y)
+plot(Btx, Bty, type="l")
+\end{verbatim}
+\end{tcolorbox}
+
+The following code was used to plot figure~\ref{BM_sim} in RStudio. Again, this is a discrete time process with 10000 time-steps rather than a true Brownian sample path.
+
+\begin{tcolorbox}
+\begin{verbatim}
+t = seq(0,1,length = 10001)
+Bt = sqrt(1/10001)*cumsum(rnorm(10001, mean = 0, sd = 1))
+plot(t,Bt, type = "l", xlab = "Time", ylab = "Simulated BM")
+\end{verbatim}
+\end{tcolorbox}
+
+The following code was used to plot Figure~\ref{Fig:LLN} in RStudio.
+
+\begin{tcolorbox}
+\begin{verbatim}
+t.s = seq(0,1,length = 10001)[-1]
+Bt = sqrt(1/10001)*cumsum(rnorm(10000, mean = 0, sd = 1))
+Bt_over_t = Bt / t.s
+plot(t.s, Bt_over_t, type = "l", lwd = 1,
+     xlab = "Time (t)", ylab = expression(B[t]/t))
+abline(h = 0, lty = 2) 
+\end{verbatim}
+\end{tcolorbox}
+
+\newpage
+\renewcommand{\bibname}{References}
+%\addcontentsline{toc}{section}{References}
+\bibliographystyle{plain}
+\bibliography{Essay_Bibliography}
+
+\end{document}
